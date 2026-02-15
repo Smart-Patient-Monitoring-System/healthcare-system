@@ -1,0 +1,12 @@
+[submodule "mainservice"]
+	path = mainservice
+	url = https://github.com/Smart-Patient-Monitoring-System/mainservice.git
+[submodule "chatbotbackend"]
+	path = chatbotbackend
+	url = https://github.com/Smart-Patient-Monitoring-System/chatbotbackend.git
+[submodule "IOT_service"]
+	path = IOT_service
+	url = https://github.com/Smart-Patient-Monitoring-System/IOT_service.git
+[submodule "vitalReports-AI"]
+	path = vitalReports-AI
+	url = https://github.com/Smart-Patient-Monitoring-System/vitalReports-AI.git
