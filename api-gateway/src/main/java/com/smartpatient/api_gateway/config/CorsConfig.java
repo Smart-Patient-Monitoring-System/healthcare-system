@@ -1,37 +1,46 @@
 package com.smartpatient.api_gateway.config;
 
-import jakarta.servlet.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
-import java.io.IOException;
+import java.util.List;
 
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
-public class CorsConfig implements Filter {
+/**
+ * Clean CORS Strategy for Spring Cloud Gateway WebMVC.
+ * 
+ * Instead of hacking headers and response wrappers, we use Spring's native
+ * CorsFilter.
+ * Crucially, we ONLY register CORS for routes that DO NOT have their own CORS
+ * configuration
+ * (like VitalReports-AI, IoT, and Chatbot).
+ * 
+ * We INTENTIONALLY DO NOT register CORS for MainService routes (/api/doctor/**,
+ * etc.)
+ * because MainService handles its own CORS natively. This completely eliminates
+ * the
+ * duplicate header issue while ensuring all endpoints work.
+ */
+@Configuration
+public class CorsConfig {
 
-    @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-            throws IOException, ServletException {
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
 
-        HttpServletRequest request = (HttpServletRequest) req;
-        HttpServletResponse response = (HttpServletResponse) res;
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
-        response.setHeader("Access-Control-Allow-Headers", "*");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Max-Age", "3600");
+        // Apply Gateway CORS to ALL routes
+        // MainService CORS must be DISABLED to prevent duplicate headers
+        source.registerCorsConfiguration("/**", config);
 
-        // Handle preflight OPTIONS requests immediately
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            response.setStatus(HttpServletResponse.SC_OK);
-            return;
-        }
-
-        chain.doFilter(req, res);
+        return new CorsFilter(source);
     }
 }
