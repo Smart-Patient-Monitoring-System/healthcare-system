@@ -1,5 +1,5 @@
 server:
-  port: 8084
+  port: 8088
 
 spring:
   cloud:
@@ -82,6 +82,11 @@ spring:
               uri: http://localhost:8080
               predicates:
                 - Path=/api/reports/**
+
+            - id: main-doctor-notes
+              uri: http://localhost:8080
+              predicates:
+                - Path=/api/doctor-notes/**
 
             # ── VitalReports-AI (:8081) ──────────────────────
             - id: vital-service
